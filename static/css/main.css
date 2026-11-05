@@ -1,0 +1,207 @@
+/* Healthcare Analytics Custom Stylesheet - Clean & Professional Theme */
+:root {
+    --primary-navy: #0f172a;
+    --navy-dark: #020617;
+    --navy-blue: #1e3a8a;
+    --accent-cyan: #0284c7;
+    --accent-teal: #0d9488;
+    --warning-amber: #d97706;
+    --danger-rose: #e11d48;
+    --success-emerald: #10b981;
+    --bg-slate: #f8fafc;
+    --card-border: #e2e8f0;
+    --text-primary: #1e293b;
+    --text-muted: #64748b;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-slate);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Limitations Banner */
+.limitations-banner {
+    background: #0f172a;
+    border-bottom: 2px solid #f59e0b;
+}
+
+/* Navbar */
+.bg-navy {
+    background-color: var(--primary-navy) !important;
+}
+
+.text-cyan {
+    color: #38bdf8 !important;
+}
+
+.text-navy {
+    color: var(--primary-navy) !important;
+}
+
+.btn-cyan {
+    background-color: var(--accent-cyan);
+    color: #ffffff;
+    font-weight: 500;
+}
+.btn-cyan:hover {
+    background-color: #0369a1;
+    color: #ffffff;
+}
+
+.navbar .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    transition: all 0.15s ease;
+}
+
+.navbar .nav-link:hover, .navbar .nav-link.active {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 1.1rem;
+}
+
+/* Clean KPI Stat Cards */
+.kpi-stat-card {
+    background: #ffffff;
+    border-radius: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.kpi-icon-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+}
+
+.tracking-wider {
+    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+}
+
+/* Tab Pills */
+.custom-tab-pills .nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.custom-tab-pills .nav-link:hover {
+    color: var(--text-primary);
+    background-color: #f1f5f9;
+}
+
+.custom-tab-pills .nav-link.active {
+    color: #ffffff;
+    background-color: var(--primary-navy);
+}
+
+/* Shadow utilities */
+.shadow-xs {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Cards & Containers */
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    background-color: #ffffff;
+}
+
+/* Tables */
+.table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+/* Soft Badges */
+.badge-valid {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-high {
+    background-color: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+.badge-low {
+    background-color: #fef9c3;
+    color: #a16207;
+    border: 1px solid #fef08a;
+}
+
+.badge-implausible {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+/* Legacy rule card compatibility */
+.rule-item-card {
+    border-left: 4px solid var(--accent-cyan);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 1rem;
+    border-top: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.rule-item-card.sev-High {
+    border-left-color: #ef4444;
+}
+
+.rule-item-card.sev-Moderate {
+    border-left-color: #f59e0b;
+}
+
+/* Code block formatting */
+pre code {
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}

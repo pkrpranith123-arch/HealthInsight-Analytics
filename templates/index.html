@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}Healthcare Analytics - Clinical & Operations Dashboard{% endblock %}
+
+{% block content %}
+<!-- Executive Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-4 pb-2 border-bottom gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h4 class="fw-bold mb-0 text-navy">Operations & Clinical Analytics</h4>
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
+                <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> Active Monitoring
+            </span>
+        </div>
+        <p class="text-muted small mb-0">
+            Real-time cohort summary across 8 hospital units, automated risk markers, and patient admissions.
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('patients_view') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-people me-1"></i> Patient Directory
+        </a>
+        <a href="{{ url_for('operational_report_view') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-file-earmark-bar-graph me-1"></i> Full Analytics Report
+        </a>
+        <form method="POST" action="{{ url_for('analytics.regenerate_charts_api') }}" class="d-inline" onsubmit="return confirm('Regenerate static analytics charts?')">
+            <input type="hidden" name="dummy" value="1">
+            <button type="submit" class="btn btn-sm btn-outline-dark" title="Regenerate static charts">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 4 Key Performance Indicators (Clean KPI Cards) -->
+<div class="row g-3 mb-4">
+    <!-- Total Patients -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3 kpi-stat-card border-start border-4 border-primary">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="text-muted small fw-semibold text-uppercase tracking-wider">Total Patients</span>
+                <span class="kpi-icon-badge bg-primary-subtle text-primary">
+                    <i class="bi bi-people-fill"></i>
+                </span>
+            </div>
+            <div class="fs-3 fw-bold text-dark mb-1">{{ report.summary.total_patients }}</div>
+            <div class="small text-muted d-flex align-items-center gap-1">
+                <i class="bi bi-check-circle-fill text-success"></i> Monitored across 6 age bands
+            </div>
+        </div>
+    </div>
+
+    <!-- Admissions & Visits -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3 kpi-stat-card border-start border-4 border-success">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="text-muted small fw-semibold text-uppercase tracking-wider">Admissions & Visits</span>
+                <span class="kpi-icon-badge bg-success-subtle text-success">
+                    <i class="bi bi-hospital-fill"></i>
+                </span>
+            </div>
+            <div class="fs-3 fw-bold text-dark mb-1">{{ report.summary.total_visits }}</div>
+            <div class="small text-muted d-flex align-items-center gap-1">
+                <i class="bi bi-building text-success"></i> 8 Hospital departments
+            </div>
+        </div>
+    </div>
+
+    <!-- Vitals Monitored -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3 kpi-stat-card border-start border-4 border-info">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="text-muted small fw-semibold text-uppercase tracking-wider">Vitals Monitored</span>
+                <span class="kpi-icon-badge bg-info-subtle text-info">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </span>
+            </div>
+            <div class="fs-3 fw-bold text-dark mb-1">{{ report.summary.total_measurements }}</div>
+            <div class="small text-muted d-flex align-items-center gap-1">
+                <i class="bi bi-shield-check text-info"></i> Range-validated entries
+            </div>
+        </div>
+    </div>
+
+    <!-- High Risk Flagged -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm p-3 kpi-stat-card border-start border-4 border-warning">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="text-muted small fw-semibold text-uppercase tracking-wider">Flagged Cohort</span>
+                <span class="kpi-icon-badge bg-warning-subtle text-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </span>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-1">
+                <div class="fs-3 fw-bold text-dark">{{ report.summary.multi_indicator_patients }}</div>
+                <span class="badge bg-warning-subtle text-warning rounded-pill small">{{ report.summary.multi_indicator_pct }}% of cohort</span>
+            </div>
+            <div class="small text-muted d-flex align-items-center gap-1">
+                <i class="bi bi-flag text-warning"></i> Multi-risk watch flags (≥2)
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Visual Analytics Explorer (Tabbed, Clean & Interactive) -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-graph-up-arrow text-primary fs-5"></i>
+            <div>
+                <h6 class="fw-bold mb-0 text-navy">Visual Analytics Explorer</h6>
+                <small class="text-muted">Select an analytics lens to inspect operational trends and distributions</small>
+            </div>
+        </div>
+        <!-- Tab Pills Switcher -->
+        <ul class="nav nav-pills custom-tab-pills" id="analyticsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="dept-tab" data-bs-toggle="pill" data-bs-target="#dept-pane" type="button" role="tab">
+                    <i class="bi bi-pie-chart me-1"></i> Department Workload
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="vitals-tab" data-bs-toggle="pill" data-bs-target="#vitals-pane" type="button" role="tab">
+                    <i class="bi bi-bar-chart-steps me-1"></i> Vital Distributions
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="risk-tab" data-bs-toggle="pill" data-bs-target="#risk-pane" type="button" role="tab">
+                    <i class="bi bi-layers me-1"></i> Risk Stratification
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="corr-tab" data-bs-toggle="pill" data-bs-target="#corr-pane" type="button" role="tab">
+                    <i class="bi bi-grid-3x3 me-1"></i> Correlation Heatmap
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body p-4">
+        <div class="tab-content" id="analyticsTabsContent">
+            <!-- Tab 1: Department Admissions -->
+            <div class="tab-pane fade show active" id="dept-pane" role="tabpanel">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8 text-center">
+                        <img src="{{ url_for('static', filename='charts/dept_admissions_trend.png') }}?v=1" 
+                             class="img-fluid rounded border shadow-xs" 
+                             alt="Department Admissions Breakdown"
+                             style="max-height: 400px; width: 100%; object-fit: contain;">
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold text-navy mb-2"><i class="bi bi-info-circle me-1 text-primary"></i> Workload Breakdown</h6>
+                            <p class="text-secondary small mb-3">
+                                Compares emergency triage against elective and routine outpatient admissions across the 8 clinical departments.
+                            </p>
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div class="d-flex justify-content-between small py-1 border-bottom">
+                                    <span class="text-muted">Total Active Units</span>
+                                    <span class="fw-semibold">8 Departments</span>
+                                </div>
+                                <div class="d-flex justify-content-between small py-1 border-bottom">
+                                    <span class="text-muted">High Acuity Services</span>
+                                    <span class="fw-semibold">Emergency & ICU</span>
+                                </div>
+                                <div class="d-flex justify-content-between small py-1">
+                                    <span class="text-muted">Average Length of Stay</span>
+                                    <span class="fw-semibold">18.5 – 65.0 hrs</span>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('operational_report_view') }}" class="btn btn-sm btn-outline-primary w-100">
+                                Detailed Department Report <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Vital Distributions -->
+            <div class="tab-pane fade" id="vitals-pane" role="tabpanel">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8 text-center">
+                        <img src="{{ url_for('static', filename='charts/measurement_distributions.png') }}?v=1" 
+                             class="img-fluid rounded border shadow-xs" 
+                             alt="Measurement Distributions"
+                             style="max-height: 400px; width: 100%; object-fit: contain;">
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold text-navy mb-2"><i class="bi bi-activity me-1 text-success"></i> Physiological Reference Bands</h6>
+                            <p class="text-secondary small mb-3">
+                                Distribution histograms overlaying normal sample reference intervals (in green) across blood pressure, heart rate, oxygen saturation, and glucose.
+                            </p>
+                            <div class="alert alert-info py-2 px-3 small mb-3 border-0 bg-info-subtle text-info-emphasis">
+                                <i class="bi bi-shield-check me-1"></i> Automated validation classifies incoming measurements into clinical plausibility tiers.
+                            </div>
+                            <a href="{{ url_for('measurements_view') }}" class="btn btn-sm btn-outline-success w-100">
+                                View Vital Measurements <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Risk Stratification -->
+            <div class="tab-pane fade" id="risk-pane" role="tabpanel">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8 text-center">
+                        <img src="{{ url_for('static', filename='charts/indicator_distribution.png') }}?v=1" 
+                             class="img-fluid rounded border shadow-xs" 
+                             alt="Indicator Distribution"
+                             style="max-height: 400px; width: 100%; object-fit: contain;">
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold text-navy mb-2"><i class="bi bi-layers-half me-1 text-warning"></i> Age-Stratified Risk Factors</h6>
+                            <p class="text-secondary small mb-3">
+                                Cross-tabulation of triggered indicators across demographic cohorts to highlight patterns across older and high-risk age bands.
+                            </p>
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div class="d-flex justify-content-between small py-1 border-bottom">
+                                    <span class="text-muted">Total Flags Recorded</span>
+                                    <span class="fw-semibold">{{ report.summary.total_indicators_flagged }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between small py-1 border-bottom">
+                                    <span class="text-muted">Multisystem Review</span>
+                                    <span class="badge bg-warning-subtle text-warning">{{ report.summary.multi_indicator_patients }} Patients</span>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('indicators_view') }}" class="btn btn-sm btn-outline-warning w-100">
+                                Open Indicator Engine <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Correlation Heatmap -->
+            <div class="tab-pane fade" id="corr-pane" role="tabpanel">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8 text-center">
+                        <img src="{{ url_for('static', filename='charts/correlation_heatmap.png') }}?v=1" 
+                             class="img-fluid rounded border shadow-xs" 
+                             alt="Correlation Heatmap"
+                             style="max-height: 400px; width: 100%; object-fit: contain;">
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold text-navy mb-2"><i class="bi bi-grid-3x3 me-1 text-danger"></i> Parameter Interdependencies</h6>
+                            <p class="text-secondary small mb-3">
+                                Pearson correlation coefficients between key vital signs and metabolic markers, highlighting collinear physiological pairs.
+                            </p>
+                            <div class="alert alert-secondary py-2 px-3 small mb-3 border-0 bg-secondary-subtle">
+                                <i class="bi bi-cpu me-1"></i> Evaluated alongside Scikit-Learn logistic regression and random forest models.
+                            </div>
+                            <a href="{{ url_for('ml_experiment_view') }}" class="btn btn-sm btn-outline-danger w-100">
+                                Explore ML Experiment <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Operational Section: Department Capacity + Recent Patient Activity -->
+<div class="row g-4 mb-4">
+    <!-- Left Column: Department Capacity Summary -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-hospital text-primary fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-navy">Department Capacity & Admissions</h6>
+                </div>
+                <a href="{{ url_for('visits_view') }}" class="btn btn-sm btn-link text-decoration-none">
+                    View All Visits <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Department</th>
+                            <th>Total Intakes</th>
+                            <th>Acuity Breakdown</th>
+                            <th class="text-end pe-4">Avg LoS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in report.departments[:6] %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-semibold text-dark">{{ dept.department_name }}</div>
+                                    <div class="text-muted small" style="font-size: 0.75rem;">ID: {{ dept.department_id }}</div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark">{{ dept.total_admissions }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        {% if dept.emergency_count > 0 %}
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill small" title="Emergency">
+                                                {{ dept.emergency_count }} Emer
+                                            </span>
+                                        {% endif %}
+                                        {% if dept.urgent_count > 0 %}
+                                            <span class="badge bg-warning-subtle text-warning rounded-pill small" title="Urgent">
+                                                {{ dept.urgent_count }} Urg
+                                            </span>
+                                        {% endif %}
+                                        {% if dept.elective_count > 0 or dept.routine_count > 0 %}
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill small" title="Elective / Routine">
+                                                {{ dept.elective_count + dept.routine_count }} Routine
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <span class="badge bg-light text-dark border">{{ dept.avg_los_hours }}h</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Priority Clinical Activity & Risk Indicators -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-exclamation text-warning fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-navy">Recent Risk Indicators</h6>
+                </div>
+                <a href="{{ url_for('indicators_view') }}" class="btn btn-sm btn-link text-decoration-none">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Patient</th>
+                            <th>Rule</th>
+                            <th>Category</th>
+                            <th class="pe-4">Rationale</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ind in recent_indicators[:6] %}
+                            <tr>
+                                <td class="ps-4">
+                                    <a href="{{ url_for('patients_view', search=ind.patient_id) }}" class="fw-semibold text-primary text-decoration-none">
+                                        {{ ind.patient_id }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark rounded-pill">{{ ind.rule_code }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-info rounded-pill small">
+                                        {{ ind.indicator_category }}
+                                    </span>
+                                </td>
+                                <td class="pe-4 text-muted small text-truncate" style="max-width: 200px;" title="{{ ind.rationale }}">
+                                    {{ ind.rationale }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simplified Screening Criteria Strip (Clean & Non-Intrusive) -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div>
+                <h6 class="fw-bold text-navy mb-1">
+                    <i class="bi bi-sliders2 me-2 text-primary"></i>Automated Screening Criteria
+                </h6>
+                <p class="text-muted small mb-0">
+                    5 transparent, auditable rules continuously monitor patient cohorts for operational review.
+                </p>
+            </div>
+            <a href="{{ url_for('indicators_view') }}" class="btn btn-sm btn-outline-primary">
+                Full Rule Documentation <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        
+        <div class="row g-2">
+            {% for code, rule in rule_definitions.items() %}
+                <div class="col-md">
+                    <div class="p-3 rounded-3 border bg-light h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-dark rounded-pill">{{ code }}</span>
+                            <span class="badge {% if rule.severity == 'High' %}bg-danger-subtle text-danger{% else %}bg-warning-subtle text-warning{% endif %} rounded-pill small">
+                                {{ rule.category }}
+                            </span>
+                        </div>
+                        <div class="fw-semibold text-dark small mt-2">{{ rule.name }}</div>
+                        <div class="text-muted small mt-1 font-monospace" style="font-size: 0.75rem;">
+                            {{ rule.logic_description }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
